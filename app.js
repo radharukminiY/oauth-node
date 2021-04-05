@@ -1,57 +1,39 @@
 var express = require('express');
 var app = express();
-var port = 7800;
+var port =5200;
 var superagent = require('superagent');
 var request = require('request');
 
-//Static files
-app.use(express.static(__dirname+'/public'));
-//html
-app.set('views', './src');
-//View engine
-app.set('view engine','ejs');
-
 app.get('/',(req,res) => {
-    res.render('index')
+    res.send("<a href='https://github.com/login/oauth/authorize?client_id=a53ead3dd0f216320130'>Login With Git</a>")
 })
 
-app.get('/profile',(req,res) => {
-    const code = req.query.code
-    if(!code){
-        res.send({
-            success:false,
-            message:'Error on Login'
-        })
-    }
+app.get('/auth',(req,res) => {
+    const code = req.query.code;
     superagent
-        .post("https://github.com/login/oauth/access_token")
+        .post('https://github.com/login/oauth/access_token')
         .send({
-            client_id:"a53ead3dd0f216320130",
-            client_secret:"1e4763e32013bcff5fd66fe300a91417cc3ec89d",
+            client_id:'a53ead3dd0f216320130',
+            client_secret:'0d7a422f2e26efef97666f896f0144ef251c71cd',
             code:code
         })
-        .set('Accept', 'application/json')
+        .set('Accept','application/json')
         .end((err,result) => {
             if(err) throw err;
-            var accessToken = result.body.access_token;
-            const option ={
+            var acctoken = result.body.access_token;
+            const option = {
                 url:'https://api.github.com/user',
                 method:'GET',
                 headers:{
-                    'Accept': 'application/json',
-                    'Authorization':'token '+accessToken,
-                    'User-Agent':'node'
+                    'Accept':'application/json',
+                    'Authorization':'token '+acctoken,
+                    'User-Agent':'mycode'
                 }
             }
-            var output;
             request(option,(err,response,body)=>{
-                output = body;
-                return res.send(output)
+                return res.send(body)
             })
-
         })
 })
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`)
-})
+app.listen(port)
